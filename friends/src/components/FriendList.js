@@ -1,70 +1,45 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
 
-class FriendList extends React.Component {
-  state = {
-    friendList: [],
-    formValues: {
-      name: "",
-      age: "",
-      email: "",
-    },
-  };
+const FriendList = () => {
 
-  componentDidMount() {
-    this.getData();
-  }
+    const [friendList, setFriendList] = useState([]);
+    const [formValues, setFormValues] = useState({name: '', age: '', email: ''})
 
-  getData = () => {
-    // get request
-    // add token to authorization header
-    // const token = window.localStorage.getItem('token');
+    useEffect(() => {
+        axiosWithAuth()
+        .get("/api/friends")
+        .then((res) => {
+          console.log(res);
+          setFriendList(res.data);
+        })
+        .catch((err) => console.log(err));
+    }, [])
 
-    axiosWithAuth()
-      .get("/api/friends")
-      .then((res) => {
-        console.log(res);
-        this.setState({
-          friendList: res.data,
-        });
-      })
-      .catch((err) => console.log(err));
-  };
 
-  handleChange = (e) => {
-    this.setState({
-      ...this.state.friendList,
-      formValues: {
-        ...this.state.formValues,
-        [e.target.name]: e.target.value,
-      },
-    });
-  };
+    const handleChange = (e) => {
+        setFormValues({
+            ...formValues, 
+            [e.target.name]: e.target.value,
+         })
+    }
 
-  addFriend = (e) => {
+  const addFriend = (e) => {
     e.preventDefault();
     axiosWithAuth()
-      .post("/api/friends", this.state.formValues)
+      .post("/api/friends", formValues)
       .then((res) => {
           console.log(res);
-          this.setState({
-            friendList: res.data,
-            formValues: {
-              name: '',
-              age: '',
-              email: '',
-            },
-          })
+          setFriendList(res.data);
+          setFormValues({name: '', age: '', email: ''});
         })
       .catch((err) => console.log(err))
-      .finally()
   };
 
-  render() {
     return (
       <div>
         <h1> These are my friends!</h1>
-        {this.state.friendList.map((friend) => {
+        {friendList.map((friend) => {
           return <h3 key={friend.id}>{friend.name}</h3>;
         })}
 
@@ -74,28 +49,28 @@ class FriendList extends React.Component {
           <input
             type="text"
             name="name"
-            value={this.state.formValues.name}
-            onChange={this.handleChange}
+            value={formValues.name}
+            onChange={handleChange}
           ></input>
           Age
           <input
             type="text"
             name="age"
-            value={this.state.formValues.age}
-            onChange={this.handleChange}
+            value={formValues.age}
+            onChange={handleChange}
           ></input>
           Email
           <input
             type="text"
             name="email"
-            value={this.state.formValues.email}
-            onChange={this.handleChange}
+            value={formValues.email}
+            onChange={handleChange}
           ></input>
-          <button onClick={this.addFriend}> Add Friend</button>
+          <button onClick={addFriend}> Add Friend</button>
         </form>
       </div>
     );
-  }
+
 }
 
 export default FriendList;
